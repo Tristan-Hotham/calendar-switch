@@ -1,0 +1,104 @@
+switch,code,name,country_iso3,year,timeline,date_or_note,source
+cal,BE-BRU,Brussels,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-VAN,Antwerp,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-VBR,Flemish Brabant,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-VLI,Limburg,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-VOV,East Flanders,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-VWV,West Flanders,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-WBR,Walloon Brabant,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-WHT,Hainaut,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-WLG,Liege,BEL,1583,old calendar at the start; Gregorian from 1583,10 February 1583 followed by 21 February (Prince-Bishopric of Liège),GL
+cal,BE-WLX,Luxembourg,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,BE-WNA,Namur,BEL,1582,old calendar at the start; Gregorian from 1582,"December 1582 (Brabant, Flanders and the Spanish-ruled Southern Netherlands)",GL
+cal,CA-NS,Nova Scotia,CAN,1752,old calendar at the start; Gregorian from 1752,Nova Scotia returned to the Julian calendar under British rule in 1710 and switched with Britain in 1752,GL
+cal,CA-QC,Québec,CAN,1582,old calendar at the start; Gregorian from 1582,December 1582 (New France),GL; AG
+cal,CH-AI,Appenzell Innerrhoden,CHE,1584,old calendar at the start; Gregorian from 1584,1584,GL
+cal,CH-AR,Appenzell Ausserrhoden,CHE,1798,old calendar at the start; Gregorian from 1584; old calendar from 1597; Gregorian from 1798,"Switched in 1584, went back to the Julian calendar in 1597, switched again on 25 December 1798",GL
+cal,CH-BE,Bern,CHE,1701,old calendar at the start; Gregorian from 1701,31 December 1700 followed by 12 January 1701 (the Protestant cantons),GL
+cal,CH-BS,Basel-Stadt,CHE,1701,old calendar at the start; Gregorian from 1701,31 December 1700 followed by 12 January 1701 (the Protestant cantons),GL
+cal,CH-FR,Fribourg,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-GE,Genève,CHE,1701,old calendar at the start; Gregorian from 1701,31 December 1700 followed by 12 January 1701 (the Protestant cantons),GL
+cal,CH-GL,Glarus,CHE,1798,old calendar at the start; partly Gregorian from 1701; Gregorian from 1798,Catholic Glarus 12 January 1701; Protestant Glarus 4 July 1798,GL
+cal,CH-GR,Graubünden,CHE,1812,old calendar at the start; partly Gregorian from 1623; Gregorian from 1812,"Catholic parts 1623 to 1624; Protestant communes between 1783 and 1811, the last (Schiers and Grüsch) on 7 January 1812",GL
+cal,CH-JU,Jura,CHE,1583,old calendar at the start; Gregorian from 1583,October 1583 (the Catholic diocese of Basel),GL
+cal,CH-LU,Lucerne,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-NE,Neuchâtel,CHE,1701,old calendar at the start; Gregorian from 1701,31 December 1700 followed by 12 January 1701 (the Protestant cantons),GL
+cal,CH-NW,Nidwalden,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-OW,Obwalden,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-SG,Sankt Gallen,CHE,,old calendar at the start; partly Gregorian from 1724,The city of St. Gallen in 1724; the list gives no date for the rest of the canton,GL
+cal,CH-SH,Schaffhausen,CHE,1701,old calendar at the start; Gregorian from 1701,31 December 1700 followed by 12 January 1701 (the Protestant cantons),GL
+cal,CH-SO,Solothurn,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-SZ,Schwyz,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-TG,Thurgau,CHE,1584,old calendar at the start; Gregorian from 1584,1584,GL
+cal,CH-UR,Uri,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-VS,Valais,CHE,1655,old calendar at the start; partly Gregorian from 1623; Gregorian from 1655,Lower Valais 1623; the rest on 11 March 1655,GL
+cal,CH-ZG,Zug,CHE,1584,old calendar at the start; Gregorian from 1584,January or February 1584 (the Catholic cantons),GL
+cal,CH-ZH,Zürich,CHE,1701,old calendar at the start; Gregorian from 1701,31 December 1700 followed by 12 January 1701 (the Protestant cantons),GL
+cal,FR-54,Meurthe-et-Moselle,FRA,1760,old calendar at the start; Gregorian from 1582; old calendar from 1735; Gregorian from 1760,"Lorraine: December 1582, back to the Julian calendar in 1735, Gregorian again on 28 February 1760",GL
+cal,FR-55,Meuse,FRA,1760,old calendar at the start; Gregorian from 1582; old calendar from 1735; Gregorian from 1760,"Lorraine: December 1582, back to the Julian calendar in 1735, Gregorian again on 28 February 1760",GL
+cal,FR-57,Moselle,FRA,1760,old calendar at the start; Gregorian from 1582; old calendar from 1735; Gregorian from 1760,"Lorraine: December 1582, back to the Julian calendar in 1735, Gregorian again on 28 February 1760",GL
+cal,FR-67,Bas-Rhin,FRA,1682,old calendar at the start; partly Gregorian from 1583; Gregorian from 1682,The Catholic diocese of Strasbourg in November 1583; Protestant Strasbourg and the Protestant parishes in February 1682,GL
+cal,FR-68,Haute-Rhin,FRA,1583,old calendar at the start; Gregorian from 1583,"Austrian Upper Alsace in October 1583 (Mulhouse, then independent, in 1701)",GL
+cal,FR-88,Vosges,FRA,1760,old calendar at the start; Gregorian from 1582; old calendar from 1735; Gregorian from 1760,"Lorraine: December 1582, back to the Julian calendar in 1735, Gregorian again on 28 February 1760",GL
+cal,NL-DR,Drenthe,NLD,1701,old calendar at the start; Gregorian from 1701,30 April 1701 followed by 12 May,GL
+cal,NL-FR,Friesland,NLD,1701,old calendar at the start; Gregorian from 1701,31 December 1700 followed by 12 January 1701 (Frisia),GL
+cal,NL-GE,Gelderland,NLD,1700,old calendar at the start; Gregorian from 1700,30 June 1700 followed by 12 July,GL
+cal,NL-GR,Groningen,NLD,1701,old calendar at the start; partly Gregorian from 1583; old calendar from 1594; Gregorian from 1701,Groningen city switched in March 1583 and went back to the Julian calendar in November 1594; the whole province switched on 12 January 1701,GL
+cal,NL-NB,Noord-Brabant,NLD,1582,old calendar at the start; Gregorian from 1582,14 December 1582 followed by 25 December (Brabant),GL
+cal,NL-NH,Noord-Holland,NLD,1583,old calendar at the start; Gregorian from 1583,1 January 1583 followed by 12 January (Holland),GL
+cal,NL-OV,Overijssel,NLD,1700,old calendar at the start; Gregorian from 1700,30 November 1700 followed by 12 December,GL
+cal,NL-UT,Utrecht,NLD,1700,old calendar at the start; Gregorian from 1700,30 November 1700 followed by 12 December,GL
+cal,NL-ZE,Zeeland,NLD,1582,old calendar at the start; Gregorian from 1582,14 December 1582 followed by 25 December,GL
+cal,NL-ZH,Zuid-Holland,NLD,1583,old calendar at the start; Gregorian from 1583,1 January 1583 followed by 12 January (Holland),GL
+cal,US-AK,Alaska,USA,1867,old calendar at the start; Gregorian from 1867,"Friday 6 October 1867 (Julian) was followed by Friday 18 October 1867 (Gregorian), on the sale of Alaska by Russia to the United States; with the date line moved, 11 dates were omitted",GL; AG
+road,AT-1,Burgenland,AUT,1938,left at the start; right from 1938,The rest of Austria switched in 1938.,LRP
+road,AT-2,Kärnten,AUT,1935,left at the start; right from 1935,Carinthia 1935.,LRP
+road,AT-3,Niederösterreich,AUT,1938,left at the start; right from 1938,The rest of Austria switched in 1938.,LRP
+road,AT-4,Oberösterreich,AUT,1938,left at the start; right from 1938,The rest of Austria switched in 1938.,LRP
+road,AT-5,Salzburg,AUT,1938,left at the start; right from 1938,The rest of Austria switched in 1938.,LRP
+road,AT-6,Steiermark,AUT,1938,left at the start; right from 1938,The rest of Austria switched in 1938.,LRP
+road,AT-7,Tirol,AUT,1930,left at the start; right from 1930,"North Tyrol 1930; East Tyrol, also in today's Tirol, in 1935.",LRP
+road,AT-8,Vorarlberg,AUT,1921,left at the start; right from 1921,Vorarlberg switched in 1921.,LRP
+road,AT-9,Wien,AUT,1938,left at the start; right from 1938,The rest of Austria switched in 1938.,LRP
+road,CA-AB,Alberta,CAN,,right at the start,,LRT
+road,CA-BC,British Columbia,CAN,1922,left at the start; mixed from 1920; right from 1922,"The interior changed on 15 July 1920, Vancouver and the coast on 1 January 1922.",LRT
+road,CA-MB,Manitoba,CAN,,right at the start,,LRT
+road,CA-NB,New Brunswick,CAN,1922,left at the start; right from 1922,1 December 1922.,LRT
+road,CA-NL,Newfoundland and Labrador,CAN,1947,left at the start; right from 1947,"2 January 1947, as the Dominion of Newfoundland.",LRT
+road,CA-NS,Nova Scotia,CAN,1923,left at the start; right from 1923,15 April 1923.,LRT
+road,CA-NT,Northwest Territories,CAN,,right at the start,,LRT
+road,CA-NU,Nunavut,CAN,,right at the start,,LRT
+road,CA-ON,Ontario,CAN,,right at the start,"Always right-hand, as a former part of New France.",LRP
+road,CA-PE,Prince Edward Island,CAN,1924,left at the start; right from 1924,1 May 1924.,LRT
+road,CA-QC,Québec,CAN,,right at the start,"Always right-hand, as a former part of New France.",LRP
+road,CA-SK,Saskatchewan,CAN,,right at the start,,LRT
+road,CA-YT,Yukon,CAN,,right at the start,,LRT
+road,JP-47,Okinawa,JPN,1978,left at the start; right from 1945; left from 1978,Okinawa drove on the right under American rule from 24 June 1945 and switched back to the left at 6 am on 30 July 1978 ('730').,LRT; LRP
+road,US-AK,Alaska,USA,,right at the start,,LRT
+road,US-HI,Hawaii,USA,,right at the start,,LRT
+metric,CH-GE,Genève,CHE,1813,not metric at the start; metrication started from 1813,Geneva adopted the metric system in 1813.,MTP
+metric,CH-JU,Jura,CHE,1800,not metric at the start; metrication started from 1800,"The territory of today's Jura, then French, adopted the metre in 1800.",MTP
+metric,CH-NE,Neuchâtel,CHE,1857,not metric at the start; metrication started from 1857,"Neuchâtel, 1857.",MTP
+metric,CH-VD,Vaud,CHE,1822,not metric at the start; metrication started from 1822,"Vaud, 1822.",MTP
+metric,CH-VS,Valais,CHE,1824,not metric at the start; metrication started from 1824,"Valais, 1824.",MTP
+vote,AU-NSW,New South Wales,AUS,1902,no vote at the start; vote from 1902,"New South Wales, 1902.",WST notes
+vote,AU-QLD,Queensland,AUS,1905,no vote at the start; vote from 1905,"Queensland, 1905 (with racial restrictions).",WST notes
+vote,AU-SA,South Australia,AUS,1895,no vote at the start; vote from 1895,"Colony of South Australia, 1895.",WST notes
+vote,AU-TAS,Tasmania,AUS,1903,no vote at the start; vote from 1903,"Tasmania, 1903.",WST notes
+vote,AU-VIC,Victoria,AUS,1908,no vote at the start; vote from 1908,"Victoria, 1908.",WST notes
+vote,AU-WA,Western Australia,AUS,1899,no vote at the start; vote from 1899,"Colony of Western Australia, 1899 (with racial restrictions).",WST notes
+vote,CA-AB,Alberta,CAN,1916,no vote at the start; vote from 1916,"Provincial vote, 1916.",WST notes
+vote,CA-BC,British Columbia,CAN,1917,no vote at the start; vote from 1917,"Provincial vote, 1917.",WST notes
+vote,CA-MB,Manitoba,CAN,1916,no vote at the start; vote from 1916,"Provincial vote, 1916.",WST notes
+vote,CA-NB,New Brunswick,CAN,1919,no vote at the start; vote from 1919,"Provincial vote, 1919 (women could not run for office until 1934).",WST notes
+vote,CA-NL,Newfoundland and Labrador,CAN,1925,no vote at the start; vote from 1925,"The Dominion of Newfoundland, 1925 (joined Canada in 1949).",WST notes
+vote,CA-NS,Nova Scotia,CAN,1918,no vote at the start; vote from 1918,"Provincial vote, 1918.",WST notes
+vote,CA-ON,Ontario,CAN,1917,no vote at the start; vote from 1917,"Provincial vote, 1917.",WST notes
+vote,CA-PE,Prince Edward Island,CAN,1922,no vote at the start; vote from 1922,"Provincial vote, 1922.",WST notes
+vote,CA-QC,Québec,CAN,1940,no vote at the start; vote from 1940,"Provincial vote, 1940, the last province.",WST notes
+vote,CA-SK,Saskatchewan,CAN,1916,no vote at the start; vote from 1916,"Provincial vote, 1916.",WST notes
+vote,CH-AI,Appenzell Innerrhoden,CHE,1990,no vote at the start; vote from 1990,"Cantonal vote, 1990, the last canton.",WST notes
+vote,CH-AR,Appenzell Ausserrhoden,CHE,1989,no vote at the start; vote from 1989,"Cantonal vote, 1989.",WST notes
+vote,CH-NE,Neuchâtel,CHE,1959,no vote at the start; vote from 1959,"Cantonal vote, 1959.",WST notes
+vote,CH-VD,Vaud,CHE,1959,no vote at the start; vote from 1959,"Cantonal vote, 1959.",WST notes
+vote,US-HI,Hawaii,USA,1840,no vote at the start; vote from 1840; no vote from 1852,"The Kingdom of Hawaii: universal suffrage in 1840, denied to women in 1852.",WST notes

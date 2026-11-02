@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lost Days</title>
+<meta name="description" content="An interactive world map of four great switches: the year each country moved from the Julian to the Gregorian calendar (and how many days it dropped), changes of driving side, the start of metrication and the year women first won the national vote, from Wikipedia's tables.">
+<meta property="og:title" content="When did your country lose 11 days? Four great switches, mapped">
+<meta property="og:description" content="Rome switched calendars in 1582, Britain in 1752, Russia in 1918, Saudi Arabia in 2016. Sweden drove left until 1967, Samoa moved left in 2009. Women first voted nationally in New Zealand in 1893 and in Saudi Arabia's local polls in 2015.">
+<meta property="og:image" content="https://maps.tristanhotham.com/calendar-switch/header.png">
+<meta property="og:url" content="https://maps.tristanhotham.com/calendar-switch/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+/* Almanac paper: calendar red, road blue, metric green, ballot violet. */
+:root{
+  --bg:#F6F4EF; --panel:#EAE7DF; --fg:#1D2128; --muted:#636A72; --rule:#DDD8CC; --card:#FFFEFA; --border:#CBC5B8;
+  --cal:#B4432F; --road:#2F5FA7; --metric:#2E8A6E; --vote:#7A4FA0; --left:#D08A2E; --sea:#E3EAEC; --land:#EFEBE2;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12151B; --panel:#1C2029; --fg:#ECEEF1; --muted:#A2A8B0; --rule:#30353F; --card:#171B22; --border:#444B57;
+  --cal:#F07A5E; --road:#7DA7E6; --metric:#5CC79F; --vote:#B892E0; --left:#F0AE57; --sea:#141920; --land:#2A2F38; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151B; --panel:#1C2029; --fg:#ECEEF1; --muted:#A2A8B0; --rule:#30353F; --card:#171B22; --border:#444B57;
+  --cal:#F07A5E; --road:#7DA7E6; --metric:#5CC79F; --vote:#B892E0; --left:#F0AE57; --sea:#141920; --land:#2A2F38; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 18px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+.wrap{max-width:700px;margin:0 auto;padding-block:28px 64px}
+.wrap .bleed{width:min(1180px,calc(100vw - 32px));margin-left:calc((100% - min(1180px,100vw - 32px))/2);margin-right:0}
+a{color:inherit;text-decoration-color:var(--cal);text-underline-offset:3px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kicker b{background:var(--fg);color:var(--bg);padding:5px 8px;font-weight:500}
+header.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;border-bottom:6px double var(--fg);padding-bottom:22px;margin-top:18px}
+h1{font:900 clamp(40px,9vw,80px)/.94 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 .a{color:var(--cal)}
+.mark{width:clamp(78px,16vw,128px);height:auto;display:block;color:var(--fg)}
+.dek{grid-column:1/-1;font-size:21px;line-height:1.42;margin:8px 0 0;max-width:58ch}
+.byline{font:400 13px/1.4 var(--mono);color:var(--muted);margin-top:14px}
+h2{font:800 34px/1.04 var(--display);letter-spacing:-.01em;margin:54px 0 10px;text-wrap:balance}
+h2 .n{font:500 13px/1 var(--mono);color:var(--cal);display:block;letter-spacing:.1em;margin-bottom:10px}
+h3{font:600 20px/1.25 var(--display);margin:28px 0 6px}
+p{margin:0 0 16px}
+.lede::first-letter{font:900 72px/.8 var(--display);float:left;margin:6px 10px 0 0;color:var(--cal)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.stats div{background:var(--card);padding:14px 12px}
+.stats b{display:block;font:900 clamp(22px,4.4vw,32px)/1 var(--display);letter-spacing:-.01em}
+.stats b.c{color:var(--cal)} .stats b.r{color:var(--road)} .stats b.m{color:var(--metric)} .stats b.v{color:var(--vote)}
+.stats span{font:400 12px/1.35 var(--mono);color:var(--muted);display:block;margin-top:6px}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.figure{margin:26px 0 30px}
+.fig-h{font:600 19px/1.25 var(--display);margin:0 0 4px}
+.fig-sub{font:400 13px/1.45 var(--mono);color:var(--muted);margin:0 0 12px}
+.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:10px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--mono);fill:var(--fg)}
+.lab{font-size:12px}.lab.m{fill:var(--muted)}.lab.b{font-weight:500}.lab.s{font-size:11px}.lab.xs{font-size:10px}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:400 12px/1.45 var(--mono);padding:8px 10px;border-radius:3px;max-width:300px;z-index:100001;transform:translate(-50%,calc(-100% - 12px));display:none}
+.tip b{font-weight:500}
+.controls{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.scrollrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;max-width:100%}
+.scrollrow .btn{flex:0 0 auto;white-space:nowrap}
+.ctl-l{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px;flex:0 0 auto;align-self:center}
+.btn{font:500 12px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;cursor:pointer;min-height:36px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.btn:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--cal);outline-offset:2px}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 52px 12px 0}
+.tab{font:600 14px/1.15 var(--display);text-align:left;background:var(--card);color:var(--fg);border:1px solid var(--border);border-top:5px solid var(--tc);border-radius:3px;padding:9px 10px;cursor:pointer;min-height:48px}
+.tab small{display:block;font:400 11px/1.3 var(--mono);color:var(--muted);margin-top:3px}
+.tab[aria-selected="true"]{background:var(--tc);color:#fff;border-color:var(--tc)}
+.tab[aria-selected="true"] small{color:rgba(255,255,255,.85)}
+@media (max-width:600px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.tab small{display:none}}
+.searchbox{position:relative;flex:1 1 240px;min-width:0}
+input[type=search]{font:400 15px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 11px;min-height:40px;width:100%}
+.suggest{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--card);border:1px solid var(--border);z-index:1001;font:400 13px/1.3 var(--mono);display:none;max-height:340px;overflow:auto}
+.suggest li{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.suggest li span{color:var(--muted)}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--panel)}
+.timebox{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 0 10px;font:500 13px/1 var(--mono)}
+.timebox .yv{font:900 30px/1 var(--display);min-width:3.2ch;text-align:center;color:var(--tc,var(--cal))}
+.timebox input[type=range]{width:100%;accent-color:var(--tc,var(--cal));height:28px}
+@media (max-width:600px){.timebox{grid-template-columns:auto auto minmax(0,1fr)}.timebox #ylab{display:none}}
+.play{width:42px;height:38px;border-radius:3px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);font:600 15px/1 var(--mono);cursor:pointer}
+#mapbox{position:relative;background:var(--bg)}
+#mapbox:fullscreen,#mapbox.mfs-fake{padding:10px 12px;overflow:auto;background:var(--bg)}
+#mapbox:fullscreen .lmap,#mapbox.mfs-fake .lmap{height:calc(100vh - 200px);height:calc(100dvh - 200px)}
+#mapbox:fullscreen .side,#mapbox.mfs-fake .side{max-height:calc(100dvh - 200px)}
+@media (max-width:900px){#mapbox:fullscreen .side,#mapbox.mfs-fake .side{display:none}#mapbox:fullscreen .lmap,#mapbox.mfs-fake .lmap{height:calc(100dvh - 250px)}}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.side{background:var(--card);border:1px solid var(--border);padding:12px 12px 10px;font:400 13px/1.45 var(--mono);max-height:620px;overflow:auto}
+@media (max-width:900px){.side{max-height:none}}
+.side h4{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.side h4:first-child{margin-top:2px}
+.side .big{font:800 30px/1.05 var(--display);margin:2px 0 4px}
+.side .sub{color:var(--muted);font-size:12px;margin:0 0 8px}
+.side ul{margin:4px 0 8px;padding-left:18px}
+.side li{margin:3px 0}
+.side small{color:var(--muted)}
+.side table{width:100%;border-collapse:collapse;margin:4px 0 6px}
+.side td{padding:4px 4px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.side td.num{text-align:right;white-space:nowrap}
+.side .chip{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.back{font:400 12px var(--mono);background:none;border:0;color:var(--muted);padding:0;cursor:pointer;text-decoration:underline;margin-bottom:6px}
+.go{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+.lmap{height:600px;border:1px solid var(--border);background:var(--sea);border-radius:2px;position:relative}
+@media (max-width:600px){.lmap{height:min(62vh,460px)}}
+.maplibregl-map{font:400 12px/1.4 var(--mono)}
+.maplibregl-popup-content{background:var(--card);color:var(--fg);font:400 12.5px/1.45 var(--mono);padding:10px 12px;border-radius:3px;box-shadow:0 2px 10px rgba(0,0,0,.2);max-width:300px}
+.maplibregl-popup-content b.t{font:700 16px/1.2 var(--display);display:block;margin-bottom:3px}
+.maplibregl-popup-content small{color:var(--muted)}
+.maplibregl-popup-content .now{font-weight:500}
+.maplibregl-popup-tip{border-top-color:var(--card)!important;border-bottom-color:var(--card)!important}
+.maplibregl-popup-close-button{color:var(--fg);font-size:18px;padding:0 6px}
+.maplibregl-ctrl-attrib{background:color-mix(in srgb,var(--card) 85%,transparent)!important;color:var(--muted)}
+.maplibregl-ctrl-attrib a{color:var(--fg)}
+.maplibregl-ctrl-group{background:var(--card)}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:var(--icofilter,none)}
+:root[data-theme="dark"]{--icofilter:invert(1)}
+.lyrWrap{position:absolute;top:10px;left:10px;z-index:3}
+.lyrBtn{background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;font:600 12px/1 var(--mono);padding:9px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.lyrBtn[aria-expanded="true"]{background:var(--fg);color:var(--bg)}
+.lyrPanel{background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 12px 8px;margin-top:6px;width:260px;box-shadow:0 2px 10px rgba(0,0,0,.15);font:400 12px/1.3 var(--mono);max-height:min(70vh,520px);overflow:auto}
+.lyrPanel[hidden]{display:none}
+.lyrPanel .row{margin:0 0 9px}
+.lyrPanel label{display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:600}
+.lyrPanel input[type=range]{width:100%;accent-color:var(--fg)}
+.lyrPanel .sub{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:11px;margin-top:3px}
+.lyrPanel .sub span{flex:0 0 58px}
+.lyrPanel .hd{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 7px;border-top:1px solid var(--rule);padding-top:9px}
+.lyrPanel .reset{font:400 11px var(--mono);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.mapnote{position:absolute;left:10px;bottom:10px;z-index:2;background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid var(--border);border-radius:3px;padding:6px 9px;font:400 12px/1.35 var(--mono);max-width:min(330px,70%);box-shadow:0 1px 4px rgba(0,0,0,.12);pointer-events:none}
+.mapnote:empty{display:none}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 13px var(--mono);color:var(--muted);z-index:1;text-align:center;padding:20px}
+.cntL{font:600 10.5px/1 var(--mono);color:var(--fg);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em;opacity:.78;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);pointer-events:none}
+.ptL{font:500 11px/1.1 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;transform:translate(9px,-50%)}
+[hidden]{display:none!important}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:8px;align-items:center}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:14px;height:12px;margin-right:6px;border-radius:2px;border:1px solid rgba(0,0,0,.12)}
+.legend i.dash{background:transparent!important;border:1.6px dashed var(--fg)}
+.legend i.dot{border-radius:50%;width:11px;height:11px}
+.pull{font:600 26px/1.25 var(--display);border-left:6px solid var(--cal);padding:4px 0 4px 18px;margin:30px 0}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;font-size:16px;margin:22px 0}
+.note h3{margin-top:0}
+table.tbl{width:100%;border-collapse:collapse;font:400 13px/1.4 var(--mono)}
+table.tbl th{font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px 6px 0;border-bottom:2px solid var(--fg);cursor:pointer;white-space:nowrap;position:sticky;top:0;background:var(--card)}
+table.tbl td{padding:6px 6px 6px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+table.tbl td.r,table.tbl th.r{text-align:right;white-space:nowrap}
+table.tbl tr[data-i]{cursor:pointer}
+table.tbl tr[data-i]:hover td{background:var(--panel)}
+table.tbl td small{color:var(--muted)}
+.tablebox{max-height:480px;overflow:auto;border:1px solid var(--border);background:var(--card);padding:0 10px}
+details{margin:14px 0}
+summary{font:500 13px/1.4 var(--mono);cursor:pointer;color:var(--fg);padding:8px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.cta a{font:500 13px/1 var(--mono);text-decoration:none;border:1px solid var(--fg);padding:11px 14px;border-radius:3px}
+.cta a.p{background:var(--cal);border-color:var(--cal);color:#fff}
+footer{border-top:6px double var(--fg);margin-top:56px;padding-top:16px;font:400 13px/1.55 var(--mono);color:var(--muted)}
+footer p{margin:0 0 10px}
+.theme{position:fixed;right:12px;bottom:12px;z-index:1002}
+@media print{.theme,.controls{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker"><b>Data study</b><span>History</span><span>World, 1582 to {{meta.now|raw}}</span></div>
+<header class="hero">
+  <h1>When did your country <span class="a">lose 11 days?</span></h1>
+  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><g id="heroMark"></g></svg>
+  <p class="dek">On Wednesday 2 September 1752 Britain and its colonies went to bed, and woke on Thursday 14 September. Rome had made the same jump 170 years earlier; Russia waited until 1918, Greece until 1923. This map shows when each country switched to the Gregorian calendar, alongside three other great switches: which side of the road to drive on, the metric system, and votes for women. It is a story of the world slowly agreeing on things, and of the stragglers.</p>
+</header>
+<div class="byline">Dr Tristan Hotham · Independent researcher · 2026 · Data: Wikipedia tables (CC BY-SA 4.0); Natural Earth</div>
+
+<div class="stats">
+  <div><b class="c">{{cal.span|int}} years</b><span>from the first switch, in 1582, to Saudi Arabia's civil switch in 2016</span></div>
+  <div><b class="c">11 days</b><span>the jump Britain and its colonies made in September 1752: {{cal.n_1752|int}} of today's countries</span></div>
+  <div><b class="r">{{road.n_L|int}}</b><span>countries still drive on the left, home to {{road.pop_L|pc}} of people</span></div>
+  <div><b class="v">{{vote.span|int}} years</b><span>from New Zealand's first national vote for women, 1893, to Saudi Arabia's first local poll, 2015</span></div>
+</div>
+
+<p class="lede">Every country on this map once ran its own way. Each kept its own calendar, chose its own side of the road, weighed in its own pounds, ells and catties, and decided for itself whether women had a say. Over four centuries most of them converged on the same answers, often in waves: Catholic Europe's calendar in 1582, the Protestant states around 1700, the Orthodox east after the First World War; driving on the right across the 1920s and again in the 1960s and 1970s, as Britain's former colonies in West Africa joined their French speaking neighbours; votes for women in a rush after each world war.</p>
+<p>The dates here come from the tables in English Wikipedia's articles on each switch, read cell by cell and matched to today's borders. For the calendar the main source is a list of {{cal.gl_rows|int}} historic areas, from Carinthia to Kovno, each with its last old style day and first new style day. Where the articles disagree, or a historical state has to stand in for a modern one, the map says so when you click. Press play to watch the switches roll across the world, or pick a country.</p>
+
+<h2><span class="n">01 · The map</span>Four great switches, 1582 to {{meta.now|raw}}</h2>
+<div class="bleed" id="atlas">
+<div id="mapbox" data-fullscreen-map>
+<div class="tabs" id="tabs" role="tablist" aria-label="Which switch"></div>
+<div class="timebox"><button class="play" id="play" aria-label="Play through the years">&#9654;</button><span class="yv" id="yv">2026</span><input type="range" id="yr" min="1580" max="2026" step="1" value="2026" aria-label="Year"><span id="ylab" style="color:var(--muted);font-size:12px">drag or press play</span></div>
+<div class="controls">
+  <div class="searchbox"><input type="search" id="q" placeholder="Find a country (Sweden, Japan, Samoa...)" aria-label="Find a country" autocomplete="off"><ul class="suggest" id="sug" role="listbox"></ul></div>
+  <div class="scrollrow" id="measureRow" hidden><span class="ctl-l">Count</span><button class="btn" data-v="first" aria-pressed="true">First vote</button><button class="btn" data-v="full" aria-pressed="false">Equal terms</button></div>
+</div>
+<div class="mapgrid">
+  <div><div id="map" class="lmap" role="application" aria-label="World map coloured by the year of each switch"><div class="loading" id="loading">Loading the map...</div></div>
+    <div class="legend" id="legend"></div></div>
+  <div class="side" id="side" aria-live="polite"></div>
+</div>
+</div>
+<p class="src" id="mapsrc">Countries are today's (Natural Earth); a historical state is drawn with the modern country that covers most of it, and the popup says when that is a stand in. Sub-national detail (Dutch and Belgian provinces, Swiss and Austrian cantons and states, Canadian provinces, Australian states, Alaska, Okinawa) is drawn where the sources give it. Calendar: "List of adoption dates of the Gregorian calendar by country", checked against the adoption tables in the Gregorian and Julian calendar articles and the prose of "Adoption of the Gregorian calendar". Colour: the year the whole of today's country had switched; paler where only part had. Driving side: "Left- and right-hand traffic". Metric: "Metrication". Votes: "Women's suffrage". All Wikipedia, CC BY-SA 4.0.</p>
+</div>
+
+<h2><span class="n">02 · The waves</span>Slowly, then all at once</h2>
+<p>Seen as curves, each switch has its own rhythm. The calendar moved in great religious blocs: by 1600, {{cal.n_by1600|int}} of today's countries were on it, most of them Spain's and Portugal's colonies in the Americas, counted with them; by 1800 it was {{cal.n_by1800|int}}; the Orthodox and Asian switches of 1873 to 1929 brought it to {{cal.n_by1950|int}}. Votes for women went from almost nowhere in 1900 to half of today's countries by {{vote.half_n_year|raw}} and {{vote.n_by1970|int}} by 1970. Metrication crept along through the nineteenth century, {{metric.n_19c|int}} countries before 1900, then surged after the Second World War. Driving on the right is the only one with a large group that never joined: {{road.n_L|int}} countries, with {{road.pop_L|pc}} of the world's people, still keep left.</p>
+<div class="figure"><p class="fig-h">How fast the world switched</p><p class="fig-sub">Share of today's {{source.n_countries|int}} countries, or of today's world population, that had made each switch by each year. Hover or tap for values.</p>
+<div class="controls"><div class="scrollrow" id="curveMode"><span class="ctl-l">Share of</span><button class="btn" data-m="n" aria-pressed="true">Countries</button><button class="btn" data-m="pop" aria-pressed="false">People</button></div></div>
+<div class="chart" id="curveChart"></div><div class="legend" id="curveLegend"></div>
+<p class="src">The calendar and metric lines count only the countries the sources date: {{cal.n_with_year|int}} countries for the calendar (including {{cal.n_colonial|int}} former colonies I date by their colonial power) and {{metric.n_dated|int}} for metrication. Most of the others use the Gregorian calendar and have mandatory metric laws today, but the tables give no year, so these lines stop short of the top. Population is today's, so the lines show how much of today's world had switched, not the share of people alive at the time. Driving: where the table gives no date of switch, today's side is assumed throughout.</p></div>
+
+<h2><span class="n">03 · Lost days</span>Ten, eleven, twelve or thirteen</h2>
+<p>The Julian calendar, Julius Caesar's, gives every fourth year a leap day. That makes its average year about eleven minutes too long, and by the sixteenth century the calendar had drifted ten days from the seasons that set the date of Easter. Pope Gregory XIII's reform of 1582 removed the drift in one go: in Spain, Portugal, most of Italy and Poland, Thursday 4 October 1582 was followed by Friday 15 October. France followed in December, the Catholic Low Countries a few weeks later.</p>
+<p>Every year a country waited cost it more, because the Julian calendar kept leap days in 1700, 1800 and 1900 that the Gregorian dropped. Denmark and Norway and the Protestant German states switched on 1 March 1700, just after the first of those leap days, so they dropped eleven dates, the old calendar's 29 February among them. Britain and its colonies dropped eleven in 1752, and Sweden eleven in 1753. Only two of today's countries have a part that dropped twelve: Switzerland, whose last communes, Schiers and Grüsch, went from 25 December 1811 to 7 January 1812, and Uganda, which the list records switching under British rule on 13 January 1894. The Orthodox east and the Caucasus, switching in 1915 to 1923, dropped thirteen: in Russia, Wednesday 31 January 1918 was followed by Thursday 14 February, which is why the October Revolution is now remembered on 7 November.</p>
+<div class="figure"><p class="fig-h">How many dates each country dropped</p><p class="fig-sub">Today's countries by the number of dates left out when the Julian calendar was replaced. A country appears in two rows when its regions switched in different centuries ({{cal.n_multi_days|int}} do). The last row moved from other calendars, where no dates are dropped.</p><div class="chart" id="daysChart"></div></div>
+<p>Sweden tried to be clever. From 1700 it planned to skip all eleven leap days over forty years and slide gently into step. It skipped 1700, forgot in 1704 and 1708, then gave up and went back to the Julian calendar by adding a day: 30 February 1712, the only one there has ever been. It finally jumped in 1753, Wednesday 17 February followed by Thursday 1 March. Sweden was not the only place to go back. The list records {{cal.n_returns|int}} returns to the Julian calendar: Groningen in 1594, Appenzell Ausserrhoden in 1597, Nova Scotia under British rule in 1710, Lorraine in 1735, Courland in 1796 and the Lithuanian lands under Russia in 1800, while Ulster's Gaelic lordships had a papal dispensation to go back by 1641. France abandoned the Gregorian calendar altogether for its Republican calendar from 1793 to the end of 1805.</p>
+<p>Outside Europe the switch usually came from a different kind of calendar altogether. Japan went from the second day of the twelfth month of Meiji 5 straight to 1 January 1873; Korea switched in 1896, China in 1912, Vietnam in 1954. Saudi Arabia, which keeps the Islamic calendar, moved public sector pay to the Gregorian calendar only on 1 October 2016. Four countries, the article says, still have not adopted it as their civil calendar: {{cal.never.0|raw}}, {{cal.never.1|raw}}, {{cal.never.2|raw}} and {{cal.never.3|raw}}.</p>
+<div class="pull">The British Act never mentions the Pope. And the riots demanding "give us our eleven days" are very likely a myth.</div>
+<p>Britain's switch came with the Calendar (New Style) Act 1750, which also moved New Year's Day from 25 March to 1 January (Scotland had done so in 1600) and applied to all the Crown's dominions "in Europe, Asia, Africa, and America", so the Thirteen Colonies changed with it: George Washington, born on 11 February 1731 in the old style, celebrated his birthday on 22 February. To stop anyone gaining or losing, rents and taxes fell due on their old natural days, which is why Lady Day on 25 March became 5 April. The famous slogan comes from a Hogarth painting satirising an election, and no riot appears in the official records.</p>
+
+<h2><span class="n">04 · Changing sides</span>Dagen H and the long drift to the right</h2>
+<p>The driving table records {{road.n_switched|int}} of today's countries changing side at a known date. All but {{road.n_to_L|int}} moved from left to right. The busiest decade was the {{road.top_decade|raw}}s, with {{road.top_decade_n|int}} switches, as the states carved out of Austria-Hungary, Italy, Spain, Portugal and its colonies all moved right; a second wave in the 1960s and 1970s took former British colonies into line with their neighbours: Gambia in 1965, Sierra Leone in 1971, Nigeria in 1972, Ghana in 1974, Sudan in 1973 and Myanmar in 1970.</p>
+<div class="figure"><p class="fig-h">Every dated change of side</p><p class="fig-sub">Each dot is a country, at the year the table gives for its switch. Hollow dots: the table gives the date but neither it nor the article describes the change. Hover or tap a dot.</p><div class="chart" id="roadChart"></div><div class="legend" id="roadLegend"></div></div>
+<p>The most famous switch is Sweden's. A 1955 referendum voted {{road.sweden_ref_pct|int}}% to keep driving on the left, but cars were multiplying, most were already left hand drive, and its neighbours drove on the right. So on Sunday 3 September 1967, Dagen H, all traffic stopped at 04:50, carefully changed sides, and set off again at 05:00. Accidents fell at first; by 1969 they were back to normal. Iceland followed in May 1968.</p>
+<p>Only {{road.n_to_L|int}} of today's countries went the other way: Namibia in 1920, under South Africa; Timor-Leste in 1976, after switching right with Portugal in 1928 and back to the left under Indonesian occupation; and Samoa in 2009, to use cheaper right hand drive cars from Australia, New Zealand and Japan. Okinawa drove on the right under American rule from 1945 until 30 July 1978, and Uruguay drove left from 1918 to 1945. The United Kingdom is the best known holdout: in the late 1960s it looked at switching and decided it would be unsafe and too costly. Today {{road.n_L|int}} of today's countries drive on the left, among them Japan, India, Indonesia, Thailand and most of southern and eastern Africa, and in Europe only {{road.europe_L.0|raw}}, {{road.europe_L.1|raw}}, {{road.europe_L.2|raw}} and the {{road.europe_L.3|raw}}.</p>
+
+<h2><span class="n">05 · Going metric</span>From Paris in 1795 to Samoa in 2015</h2>
+<p>The metric system began in revolutionary France in 1795 and spread through conquest, unification and trade: Portugal in 1814, the Netherlands and Belgium in 1820, Spain and Latin America by the 1860s, the new German Empire in 1872. The table of when each country's official metrication process started runs from France to {{metric.last.0.0|raw}} in {{metric.last.0.1|raw}}; the median country in it started in {{metric.median|raw}}.</p>
+<div class="figure"><p class="fig-h">When metrication started</p><p class="fig-sub">The year the table gives for the start of each country's official metrication process. Ringed dots: countries where the table says imperial or customary units remain in official use alongside metric. Hover or tap a dot.</p><div class="chart" id="metricChart"></div><div class="legend" id="metricLegend"></div></div>
+<p>Starting is not finishing. The United States made metric units lawful in 1866 but never displaced its customary units, and according to the US National Institute of Standards and Technology it is one of three countries without mandatory metric laws, with Liberia and Myanmar. The United Kingdom began a ten year programme in 1965, gave up compulsion in 1979, and in 2023 confirmed it would keep pints of beer and miles on road signs. Canada halted in 1985. These are the countries the table lists as metric and something else: {{metric.mixed.0|raw}}, {{metric.mixed.1|raw}}, {{metric.mixed.2|raw}}, the {{metric.mixed.3|raw}} and the {{metric.mixed.4|raw}}.</p>
+
+<h2><span class="n">06 · Votes for women</span>New Zealand in 1893, Saudi Arabia in 2015</h2>
+<p>New Zealand was the first country where women could vote in national elections, in 1893. Then came Australia (1902, but not yet for Aboriginal women), Finland (1906) and Norway (1913), then a rush around the end of the First World War: by 1918 women could vote in {{vote.n_by1918|int}} of today's countries. The largest wave came after the Second World War and with independence from empire: {{vote.n_1940s_50s|int}} countries first gave women the vote in the 1940s and 1950s.</p>
+<div class="figure"><p class="fig-h">The first vote, and votes on equal terms</p><p class="fig-sub">The {{vote.n_two|int}} countries where the table gives a first year for a restricted vote and a later year for full or equal terms. Most countries have a single year in the table.</p><div class="chart" id="voteChart"></div><div class="legend" id="voteLegend"></div></div>
+<p>Those two years can be far apart. In the United Kingdom women over 30 with property could vote from 1918, but only in 1928 on the same terms as men; in Portugal a restricted vote came in 1911, was taken away, returned in 1931 and lost its last restrictions only in 1976. In South Africa white women voted from 1930 and all women, with all men, only in 1994. The stragglers are a mix of small democracies and Gulf monarchies: Liechtenstein in 1984, Samoa in 1990, Qatar in 1997, Bahrain and Oman in 2002, Kuwait in 2005, the United Arab Emirates in 2006, and Saudi Arabia, where women first voted in municipal elections in December 2015 (it has no national elections). Switzerland gave women the federal vote only in 1971, and the canton of Appenzell Innerrhoden held out until 1990. {{vote.novote.0|raw}} and {{vote.novote.1|raw}} hold no votes for anyone.</p>
+
+<h2><span class="n">07 · The holdouts</span>The last to switch</h2>
+<p>Every switch has its stragglers, and some countries appear again and again. The United Kingdom switched calendars {{uk.cal_after|int}} years after Rome, still drives on the left, began metrication only in 1965 and stopped part way, and gave women the vote on equal terms in 1928, a decade after the first partial vote. The Gulf states were among the last for votes; the Orthodox east was last in Europe for the calendar.</p>
+<div class="figure"><p class="fig-h">The last ten to switch</p><p class="fig-sub">The latest dated switches in each table. Click a name to see it on the map.</p><div id="holdTable"></div></div>
+
+<h2><span class="n">08 · Every country</span>Look up anywhere</h2>
+<div class="figure"><p class="fig-sub">All {{source.n_countries|int}} of today's countries. Click a column to sort, a row to see it on the map. Calendar years in brackets are part of the country first; "colony" marks a year I take from the colonial power; votes show the first year and, where the table gives one, the year of equal terms.</p>
+<div class="controls"><div class="searchbox"><input type="search" id="tq" placeholder="Filter the table" aria-label="Filter the table" autocomplete="off"></div></div>
+<div class="tablebox"><table class="tbl" id="ctyTable"></table></div></div>
+
+<h2><span class="n">09 · How I did this</span>Methods and caveats</h2>
+<p><b>Sources.</b> {{source.pages|int}} English Wikipedia articles, saved with their revision numbers in 2026 (listed in the paper). For the calendar the primary source is the table in "List of adoption dates of the Gregorian calendar by country" ({{cal.gl_rows|int}} rows, each a historic area within one of {{cal.gl_countries|int}} present countries, with the last day before and the first day after the change and the number of dates omitted). I checked it against the adoption tables in the "Gregorian calendar" and "Julian calendar" articles and the country by country prose of "Adoption of the Gregorian calendar"; the {{cal.n_disagree|int}} places where they differ, mostly because the list has finer regional detail, are set out in the paper. For driving I used the country table in "Left- and right-hand traffic" ({{source.rows.traffic|int}} rows) and its prose; for metrication the status table in "Metrication" ({{source.rows.metric|int}} rows); for votes the table in "Women's suffrage" ({{source.rows.suffrage|int}} rows), with its notes. Every table was read cell by cell, with footnote markers removed, and is published as it was read.</p>
+<p><b>Matching.</b> Each row is matched by name to one of today's {{source.n_countries|int}} countries (Natural Earth). Historical states are drawn with the modern country that covers most of them (Bohemia with Czechia, the Ottoman Empire with Turkey, Yugoslavia with its successors), and the popup says so. For the calendar, the table's 1582 row covers Spain, Portugal and France "and colonies thereof", and its 1752 row "the First British Empire"; I date {{cal.n_colonial|int}} former colonies in the Americas and the Philippines by the power that ruled them then. That is my mapping, shown with a dashed outline. Where the tables disagree I keep the main table's year and give the other in the popup.</p>
+<p><b>Reading the years.</b> The calendar year is when the whole of today's country was first on the Gregorian calendar; earlier regional switches show as "part", and returns to the old calendar are kept. The effective year is that of the first new style day, so 21 December 1585 followed by 1 January 1586 counts as 1586. Days dropped are the list's "number of dates omitted"; every one matches the rule in the "Gregorian calendar" article (ten until February 1700, eleven to February 1800, twelve to February 1900, thirteen after), read at the first new style day, except Alaska, where the date line moved too. The driving year is the table's "date of switch"; where it gives none, today's side is assumed throughout, and where it gives a date with no description of the change the earlier years are flagged. The metric year is when the official process started, not when it finished. For votes, a single year in the table is used as it stands; where the table gives a restricted first year and a later full or equal year, both are kept.</p>
+<p><b>What this is not.</b> Wikipedia's tables are compiled by many hands and some cells are unsourced; I have not checked them against primary records. The gaps are real gaps in the sources, not countries that never switched: most of today's countries use the Gregorian calendar and the metric system without a date in these tables. Shares of population use today's populations.</p>
+<details><summary>Sources and licences</summary>
+<ul>
+<li>Wikipedia contributors, "List of adoption dates of the Gregorian calendar by country", "Adoption of the Gregorian calendar", "Gregorian calendar", "Julian calendar", "Calendar (New Style) Act 1750", "Old Style and New Style dates", "Revised Julian calendar", "Left- and right-hand traffic", "Dagen H", "Metrication", "Metric system", "Decimalisation", "Women's suffrage", "Timeline of women's suffrage", "Universal suffrage", "Timeline of women's legal rights (other than voting)", "Daylight saving time by country", "Coordinated Universal Time" and "Time zone", English Wikipedia, revisions of 2026 (numbers in the paper and data). CC BY-SA 4.0. The tables derived from them are released under the same licence.</li>
+<li>Natural Earth countries and states and provinces (public domain).</li>
+<li>Optional relief shading on the map: Esri.</li>
+</ul></details>
+
+<div class="cta"><a class="p" href="https://doi.org/10.5281/zenodo.23873009">Read the paper</a><a href="https://github.com/Tristan-Hotham/calendar-switch">Data and code</a><a href="https://blog.tristanhotham.com/2026/10/31/calendar-switch/">Blog post</a></div>
+
+<footer>
+<p>Dr Tristan Hotham, Independent researcher. ORCID <a href="https://orcid.org/0000-0003-4931-9349">0000-0003-4931-9349</a>.</p>
+<p>Cite as: Hotham, T. (2026) When did your country lose 11 days? Four great switches, from the Gregorian calendar to votes for women. Zenodo. <a href="https://doi.org/10.5281/zenodo.23873009">https://doi.org/10.5281/zenodo.23873009</a></p>
+<p>Data: English Wikipedia (CC BY-SA 4.0); Natural Earth. Licence: code MIT; text and figures CC BY 4.0; the tables derived from Wikipedia CC BY-SA 4.0.</p>
+<p>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+<button class="btn theme" id="theme" aria-label="Toggle dark mode">◐</button>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+const R = /*RESULTS*/;
+const SITE = /*SITE*/;
+const WORLD = /*WORLD*/;
+const SUBS = /*SUBUNITS*/;
+const fmt = n => n == null || n === "" ? "n/a" : Math.round(n).toLocaleString("en-GB");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const tip = document.getElementById("tip");
+function showTip(h, x, y) { tip.innerHTML = h; tip.style.display = "block"; const w = tip.offsetWidth; x = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, x)); tip.style.left = x + scrollX + "px"; tip.style.top = y + scrollY + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("click", hideTip);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const lbl = (svg, x, y, s, cls = "lab", anchor = "start") => { const t = el("text", { x, y, class: cls, "text-anchor": anchor }, svg); t.textContent = s; return t; };
+const redraws = [];
+function resp(box, render) { let last = 0; const go = force => { const w = Math.max(280, Math.round(box.clientWidth)); if (!force && Math.abs(w - last) < 4) return; last = w; box.innerHTML = ""; render(w, w < 560); }; new ResizeObserver(() => go()).observe(box); go(); redraws.push(() => go(true)); }
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const small = () => innerWidth < 900;
+const U = SITE.units, SUB = SITE.sub, Y0 = SITE.years[0], YN = SITE.years[1];
+const ISOS = Object.keys(U), CTRY = ISOS.filter(i => U[i].c);
+
+/* hero mark: a torn calendar page, 2 then 14 */
+(function () {
+  const g = document.getElementById("heroMark");
+  el("rect", { x: 4, y: 14, width: 56, height: 72, rx: 4, fill: "#FFFEFA", stroke: "currentColor", "stroke-width": 2.4 }, g);
+  el("rect", { x: 4, y: 14, width: 56, height: 16, rx: 4, fill: "#B4432F" }, g);
+  const t1 = el("text", { x: 26, y: 72, "text-anchor": "middle", style: "font:900 38px Fraunces,Georgia,serif;fill:#1D2128" }, g); t1.textContent = "2";
+  el("rect", { x: 54, y: 34, width: 60, height: 76, rx: 4, fill: "#FFFEFA", stroke: "currentColor", "stroke-width": 2.4, transform: "rotate(8 84 72)" }, g);
+  el("rect", { x: 54, y: 34, width: 60, height: 17, rx: 4, fill: "#2F5FA7", transform: "rotate(8 84 72)" }, g);
+  const t2 = el("text", { x: 84, y: 96, "text-anchor": "middle", transform: "rotate(8 84 72)", style: "font:900 36px Fraunces,Georgia,serif;fill:#1D2128" }, g); t2.textContent = "14";
+})();
+
+/* ---------- what each switch means ---------- */
+const TABS = [
+  { k: "cal", name: "Calendar", sub: "Julian to Gregorian", col: "--cal" },
+  { k: "road", name: "Driving side", sub: "left or right", col: "--road" },
+  { k: "metric", name: "Metric", sub: "metrication starts", col: "--metric" },
+  { k: "vote", name: "Votes for women", sub: "national vote", col: "--vote" }];
+const RAMP = {
+  cal: { edges: [1600, 1752, 1800, 1900, 1950], lab: ["1582 to 1599", "1600 to 1751", "1752 to 1799", "1800s", "1900 to 1949", "1950 on"], c: ["#6E1F14", "#9A3322", "#C25A38", "#DB8B57", "#E9B47F", "#F3D7B4"] },
+  metric: { edges: [1850, 1875, 1900, 1950, 1970], lab: ["1795 to 1849", "1850 to 1874", "1875 to 1899", "1900 to 1949", "1950 to 1969", "1970 on"], c: ["#0F4D3B", "#1F6E55", "#2E8A6E", "#5AAE8D", "#91CDB3", "#C9E7D9"] },
+  vote: { edges: [1915, 1930, 1945, 1960, 1980], lab: ["1893 to 1914", "1915 to 1929", "1930 to 1944", "1945 to 1959", "1960 to 1979", "1980 on"], c: ["#2E1747", "#4F2B74", "#7A4FA0", "#9C7BC0", "#BFA6DA", "#E2D6EF"] }};
+const binOf = (k, y) => { const e = RAMP[k].edges; let i = 0; while (i < e.length && y >= e[i]) i++; return i; };
+const rampC = (k, y) => RAMP[k].c[binOf(k, y)];
+const PAL = () => isDark() ? { notyet: "#262B33", undated: "#555B64", never: "#C9CED6", L: "#F0AE57", R: "#7DA7E6", M: "#A89BC4", border: "#12151B", sea: "#141920" }
+                            : { notyet: "#F2EEE5", undated: "#C9C4BA", never: "#4B5059", L: "#D08A2E", R: "#2F5FA7", M: "#9A8FB0", border: "#FFFFFF", sea: "#E3EAEC" };
+const mix = (hex, t) => { const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255, w = isDark() ? 30 : 255; const f = v => Math.round(v + (w - v) * t).toString(16).padStart(2, "0"); return "#" + f(r) + f(g) + f(b); };
+function stAt(e, y) { if (!e || e.init == null) return null; let s = e.init; for (const [yy, ss] of (e.tl || [])) if (yy <= y) s = ss; return s; }
+const S = { tab: "cal", y: YN, vm: "first", sel: null, play: null };
+const SRCN = { GL: "List of adoption dates of the Gregorian calendar by country", GT: "Gregorian calendar, adoption table", GN: "Gregorian calendar, table of the start of the year", JN: "Julian calendar, table of the start of the year", AG: "Adoption of the Gregorian calendar", ACT: "Calendar (New Style) Act 1750",
+  LRT: "Left- and right-hand traffic, country table", LRP: "Left- and right-hand traffic, prose", DH: "Dagen H", MTT: "Metrication, status table", MTP: "Metrication, prose", WST: "Women's suffrage, table" };
+const srcTxt = s => esc(s || "").replace(/\b(GL|GT|GN|JN|AG|ACT|LRT|LRP|DH|MTT|MTP|WST)\b/g, m => SRCN[m]);
+const CN = { J: "old calendar", S: "Swedish calendar", P: "partly Gregorian", G: "Gregorian", F: "French Republican calendar" }, RN = { L: "drives on the left", R: "drives on the right", M: "mixed: regions differ" };
+const VN = { N: "no national vote for women", P: "women vote, with restrictions", V: "women vote", E: "women vote on equal terms" }, MN = { N: "not yet metric", P: "part of the country metric", M: "metrication under way" };
+/* colour of unit e (a country's or sub-unit's record for this tab) in year y */
+function look(k, e, y, isSub) {
+  const P = PAL(); if (!e) return { c: P.undated, o: isSub ? 0 : 1, s: null };
+  if (k === "road") { const s = stAt(e, y); if (!s) return { c: P.undated, o: isSub ? 0 : 1, s }; const pre = e.q && e.tl && e.tl.length && y < e.tl[0][0]; return { c: P[s], o: pre ? .38 : 1, s }; }
+  const s = stAt(e, y), st = e.status;
+  if (k === "cal") {
+    if (st === "never") return { c: P.never, o: 1, s: "never" };
+    if (st === "undated") return { c: isSub ? P.undated : P.undated, o: isSub ? 0 : 1, s: "undated" };
+    if (s === "G") return { c: rampC("cal", e.year), o: 1, s };
+    if (s === "P") return { c: mix(rampC("cal", e.first), .55), o: 1, s };
+    if (s === "S") return { c: "#C9A227", o: 1, s };
+    if (s === "F") return { c: "#5B8C99", o: 1, s };
+    return { c: P.notyet, o: 1, s };
+  }
+  if (k === "metric") {
+    if (st === "undated" || st === "notmandatory") return { c: P.undated, o: isSub ? 0 : 1, s: st };
+    if (st === "transition") return { c: mix(RAMP.metric.c[5], .2), o: 1, s: st };
+    if (s === "M") return { c: rampC("metric", e.year), o: 1, s };
+    if (s === "P") return { c: mix(rampC("metric", e.first), .55), o: 1, s };
+    return { c: P.notyet, o: 1, s };
+  }
+  if (st === "novote") return { c: P.never, o: 1, s: "novote" };
+  if (st === "undated") return { c: P.undated, o: isSub ? 0 : 1, s: st };
+  let v = s; if (S.vm === "full" && v === "P") v = "N";
+  if (v === "V" || v === "E") return { c: rampC("vote", S.vm === "full" ? (e.equal || e.first || e.year) : (e.first || e.year)), o: 1, s: v };
+  if (v === "P") return { c: mix(rampC("vote", e.first || e.year), .5), o: 1, s: v };
+  return { c: P.notyet, o: 1, s: v };
+}
+
+/* ---------- map ---------- */
+const LYDEF = { sub: true, pts: true, cnames: true, borders: true, colonial: true, relief: false, reliefK: 35, fill: 100 };
+const LY = { ...LYDEF };
+try { Object.assign(LY, JSON.parse(localStorage.getItem("cs_layers") || "{}")); } catch (e) {}
+const saveLY = () => { try { localStorage.setItem("cs_layers", JSON.stringify(LY)); } catch (e) {} };
+let map = null, ready = false, popup = null, labels = [];
+const COLONIAL = ISOS.filter(i => U[i].cal && U[i].cal.status === "colonial");
+function ptsGeo() { const P = SITE.points[S.tab] || []; return { type: "FeatureCollection", features: P.map((p, i) => ({ type: "Feature", id: i, properties: { i, name: p[0], y: p[3] }, geometry: { type: "Point", coordinates: [p[1], p[2]] } })) }; }
+function startMap() {
+  if (typeof maplibregl === "undefined") { document.getElementById("loading").textContent = "The map library did not load. The charts and tables below still work."; return; }
+  const P = PAL();
+  map = new maplibregl.Map({ container: "map", center: [12, 30], zoom: small() ? 0.35 : 1.15, minZoom: 0, maxZoom: 7, renderWorldCopies: false, attributionControl: { compact: true }, fadeDuration: 0, dragRotate: false,
+    style: { version: 8, sources: { world: { type: "geojson", data: WORLD, promoteId: "iso", attribution: "Natural Earth" }, sub: { type: "geojson", data: SUBS, promoteId: "code" }, pts: { type: "geojson", data: ptsGeo() },
+      relief: { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 13, attribution: "Relief: Esri" } },
+      layers: [{ id: "bg", type: "background", paint: { "background-color": P.sea } },
+        { id: "fill", type: "fill", source: "world", paint: { "fill-color": ["coalesce", ["feature-state", "c"], P.undated], "fill-opacity": ["*", ["coalesce", ["feature-state", "o"], 1], LY.fill / 100] } },
+        { id: "subfill", type: "fill", source: "sub", paint: { "fill-color": ["coalesce", ["feature-state", "c"], P.undated], "fill-opacity": ["*", ["coalesce", ["feature-state", "o"], 0], LY.fill / 100] } },
+        { id: "relief", type: "raster", source: "relief", layout: { visibility: "none" }, paint: { "raster-opacity": LY.reliefK / 100 } },
+        { id: "subline", type: "line", source: "sub", paint: { "line-color": P.border, "line-width": .5, "line-opacity": ["coalesce", ["feature-state", "o"], 0] } },
+        { id: "borders", type: "line", source: "world", paint: { "line-color": P.border, "line-width": .6 } },
+        { id: "colonial", type: "line", source: "world", filter: ["in", ["get", "iso"], ["literal", COLONIAL]], paint: { "line-color": isDark() ? "#ECEEF1" : "#1D2128", "line-width": 1.1, "line-dasharray": [2, 1.6] } },
+        { id: "sel", type: "line", source: "world", paint: { "line-color": isDark() ? "#FFFFFF" : "#000000", "line-width": ["case", ["boolean", ["feature-state", "sel"], false], 2.2, 0] } },
+        { id: "pts", type: "circle", source: "pts", paint: { "circle-radius": 5.5, "circle-color": isDark() ? "#FFFFFF" : "#1D2128", "circle-stroke-color": P.sea, "circle-stroke-width": 2 } }] } });
+  window.map = map;
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+  map.on("error", e => { const m = String((e && e.error && (e.error.message || e.error)) || ""); if (/Failed to fetch|NetworkError|AJAXError|404|Could not load|tile/i.test(m)) return; console.warn(m); });
+  layerPanel();
+  map.on("load", () => { ready = true; const l = document.getElementById("loading"); if (l) l.remove(); applyLayers(); paint(); placeNames(); });
+  map.on("moveend", placeNames);
+  map.on("click", e => {
+    const fp = map.queryRenderedFeatures(e.point, { layers: ["pts"] });
+    if (fp.length) { const p = (SITE.points[S.tab] || [])[fp[0].properties.i]; openPop([p[1], p[2]], `<b class="t">${esc(p[0])}</b>${esc(p[4])}<br><small>Source: ${srcTxt(p[5])}</small>`); return; }
+    const fs = LY.sub ? map.queryRenderedFeatures(e.point, { layers: ["subfill"] }).filter(f => (map.getFeatureState({ source: "sub", id: f.id }).o || 0) > 0) : [];
+    if (fs.length) { subPop(fs[0].properties.code, e.lngLat); return; }
+    const f = map.queryRenderedFeatures(e.point, { layers: ["fill"] })[0];
+    if (f) pick(f.properties.iso, false, e.lngLat);
+  });
+  map.on("mousemove", e => {
+    if (!ready) return; const f = map.queryRenderedFeatures(e.point, { layers: ["fill", "pts"] })[0];
+    map.getCanvas().style.cursor = f ? "pointer" : "";
+    if (!f || f.layer.id === "pts") { note(""); return; }
+    const i = f.properties.iso, u = U[i]; if (!u) return; note(`<b>${esc(u.n)}</b>, ${S.y}: ${esc(stateWords(S.tab, u[S.tab], S.y))}`);
+  });
+  map.on("mouseout", () => note(""));
+}
+function note(h) { const n = document.getElementById("mapnote"); if (n) n.innerHTML = h || ""; }
+function applyLayers() {
+  if (!ready) return;
+  const vis = (id, on) => map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+  vis("subfill", LY.sub); vis("subline", LY.sub); vis("borders", LY.borders); vis("colonial", LY.colonial && S.tab === "cal"); vis("pts", LY.pts && !!(SITE.points[S.tab] || []).length); vis("relief", LY.relief);
+  map.setPaintProperty("relief", "raster-opacity", LY.reliefK / 100);
+  map.setPaintProperty("fill", "fill-opacity", ["*", ["coalesce", ["feature-state", "o"], 1], LY.fill / 100]);
+  map.setPaintProperty("subfill", "fill-opacity", ["*", ["coalesce", ["feature-state", "o"], 0], LY.fill / 100]);
+  placeNames();
+}
+function paint() {
+  if (!ready) return;
+  const k = S.tab, y = S.y;
+  for (const i of ISOS) { const L = look(k, U[i][k], y, false); map.setFeatureState({ source: "world", id: i }, { c: L.c, o: L.o }); }
+  for (const code in SUB) { const e = SUB[code][k]; const L = e && e.status !== "undated" ? look(k, Object.assign({ status: "dated" }, e), y, true) : { c: "#000", o: 0 }; map.setFeatureState({ source: "sub", id: code }, { c: L.c, o: e && e.status !== "undated" ? L.o : 0 }); }
+  if (popup && popup.isOpen() && popup._iso) popup.setHTML(popHTML(popup._iso));
+}
+function overlap(b, bs) { return bs.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]); }
+function placeNames() {
+  labels.forEach(m => m.remove()); labels = []; if (!ready) return;
+  const boxes = [];
+  if (LY.pts) (SITE.points[S.tab] || []).forEach(p => { const q = map.project([p[1], p[2]]), w = (p[0].length + 5) * 6.6 + 12; const b = [q.x + 6, q.y - 8, q.x + 6 + w, q.y + 8]; if (overlap(b, boxes)) return; boxes.push(b);
+    const d = document.createElement("div"); d.className = "ptL"; d.textContent = p[0] + " " + p[3]; labels.push(new maplibregl.Marker({ element: d, anchor: "left" }).setLngLat([p[1], p[2]]).addTo(map)); });
+  if (!LY.cnames) return;
+  const z = map.getZoom(), W = map.getContainer().clientWidth, H = map.getContainer().clientHeight;
+  const cand = CTRY.filter(i => U[i].pop > (z < 1 ? 6e7 : z < 2 ? 2e7 : z < 3 ? 4e6 : 2e5)).sort((a, b) => U[b].pop - U[a].pop);
+  for (const i of cand) { const u = U[i], q = map.project([u.lx, u.ly]); if (q.x < 20 || q.y < 20 || q.x > W - 20 || q.y > H - 20) continue;
+    const w = u.n.length * 6.9 + 6, b = [q.x - w / 2, q.y - 7, q.x + w / 2, q.y + 7]; if (overlap(b, boxes)) continue; boxes.push(b);
+    const d = document.createElement("div"); d.className = "cntL"; d.textContent = u.n; labels.push(new maplibregl.Marker({ element: d }).setLngLat([u.lx, u.ly]).addTo(map)); if (labels.length > 60) break; }
+}
+function layerPanel() {
+  const box = map.getContainer(), d = document.createElement("div"); d.className = "lyrWrap";
+  d.innerHTML = `<button class="lyrBtn" aria-expanded="false">Map layers</button>
+<div class="lyrPanel" hidden>
+ <div class="row"><label><input type="checkbox" data-k="sub"> Regional detail</label><div class="sub">provinces, cantons and states the sources name</div></div>
+ <div class="row"><label><input type="checkbox" data-k="pts"> Places named in the sources</label></div>
+ <div class="row"><label><input type="checkbox" data-k="colonial"> Dashed outline: calendar year from the colonial power</label></div>
+ <div class="row"><label><input type="checkbox" data-k="cnames"> Country names</label></div>
+ <div class="row"><label><input type="checkbox" data-k="borders"> Borders</label></div>
+ <div class="row"><label style="font-weight:600">Colour strength</label><div class="sub"><input type="range" data-k="fill" min="30" max="100" step="5" aria-label="Colour strength"></div></div>
+ <div class="hd">Base map</div>
+ <div class="row"><label><input type="checkbox" data-k="relief"> Shaded relief (Esri, online only)</label><div class="sub"><span>strength</span><input type="range" data-k="reliefK" min="10" max="80" step="5" aria-label="Relief strength"></div></div>
+ <button class="reset">Reset layers</button>
+</div>`;
+  box.appendChild(d);
+  ["click", "dblclick", "mousedown", "touchstart", "wheel"].forEach(t => d.addEventListener(t, e => e.stopPropagation(), { passive: true }));
+  const btn = d.querySelector(".lyrBtn"), pan = d.querySelector(".lyrPanel");
+  btn.onclick = () => { const o = pan.hidden; pan.hidden = !o; btn.setAttribute("aria-expanded", o); };
+  const sync = () => pan.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (i.type === "checkbox") i.checked = LY[k]; else i.value = LY[k]; });
+  pan.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "range" ? "input" : "change", () => {
+    const k = i.dataset.k; LY[k] = i.type === "checkbox" ? i.checked : +i.value; if (k === "reliefK") LY.relief = true; sync(); saveLY(); applyLayers(); legend(); }));
+  pan.querySelector(".reset").onclick = () => { Object.assign(LY, LYDEF); saveLY(); sync(); applyLayers(); legend(); };
+  sync();
+  const n = document.createElement("div"); n.className = "mapnote"; n.id = "mapnote"; box.appendChild(n);
+}
+function openPop(ll, html, iso) { if (popup) popup.remove(); popup = new maplibregl.Popup({ maxWidth: "310px", offset: 6, focusAfterOpen: false }).setLngLat(ll).setHTML(html).addTo(map); popup._iso = iso || null; }
+
+/* ---------- words ---------- */
+function stateWords(k, e, y) {
+  if (!e) return "not in the table";
+  if (k === "cal") { if (e.status === "never") return "has not adopted the Gregorian calendar"; if (e.status === "undated") return "Gregorian today; no date in the sources"; return CN[stAt(e, y)] || ""; }
+  if (k === "road") { const s = stAt(e, y); if (!s) return "not in the table"; const pre = e.q && e.tl && e.tl.length && y < e.tl[0][0]; return RN[s] + (pre ? " (before the table's undescribed date of switch)" : ""); }
+  if (k === "metric") { if (e.status === "undated") return "not in the table (metric laws today, no year)"; if (e.status === "notmandatory") return "metric use not mandatory in practice"; if (e.status === "transition") return "no year in the table: still transitioning"; return MN[stAt(e, y)]; }
+  if (e.status === "novote") return "no elections"; if (e.status === "undated") return "not in the table";
+  return VN[stAt(e, y)];
+}
+function yearLine(k, e) {
+  if (!e) return "";
+  if (k === "cal") { if (!e.year) return ""; let s = `Gregorian from <b>${e.year}</b>`; if (e.first && e.first < e.year) s += ` (part from ${e.first})`; if (e.days_all && e.days_all.length) s += `, ${e.days_all.join(" and ")} days dropped${e.days_all.length > 1 ? " in different parts" : ""}`; else if (e.prev && e.prev !== "Julian") s += `, from a${e.prev[0] === "l" ? " " : " "}${esc(e.prev)} calendar`; if (e.status === "colonial") s += " <small>(colony)</small>"; return s; }
+  if (k === "road") { const s = e.now === "L" ? "Drives on the <b>left</b>" : e.now === "R" ? "Drives on the <b>right</b>" : ""; return s + (e.year ? `; switch in the table: ${esc(e.date || e.year)}` : e.nodate ? "; no date of switch in the table" : ""); }
+  if (k === "metric") { if (!e.year) return ""; let s = `Metrication from <b>${e.year}</b>`; if (e.first && e.first < e.year) s += ` (part from ${e.first})`; if (e.mixed) s += "; non-metric units still official"; return s; }
+  if (!e.first) return ""; return `Women first voted nationally: <b>${e.first}</b>` + (e.equal ? `; equal terms <b>${e.equal}</b>` : "");
+}
+function others(i) {
+  const u = U[i]; return TABS.filter(t => t.k !== S.tab).map(t => { const e = u[t.k]; const y = t.k === "cal" ? (e.status === "never" ? "not adopted" : e.year ? `Gregorian ${e.year}` : "calendar: no date") : t.k === "road" ? (e.now === "L" ? "drives left" : e.now === "R" ? "drives right" : "") + (e.year ? ` (${e.year})` : "") : t.k === "metric" ? (e.year ? `metric ${e.year}` : "metric: no year") : (e.first ? `women vote ${e.first}${e.equal ? "/" + e.equal : ""}` : e.status === "novote" ? "no elections" : "");
+    return `<span class="go" data-t="${t.k}">${esc(y)}</span>`; }).join(" · ");
+}
+function popHTML(i) {
+  const u = U[i], k = S.tab, e = u[k] || {};
+  let h = `<b class="t">${esc(u.n)}</b><div class="now">${S.y}: ${esc(stateWords(k, e, S.y))}</div>`;
+  const yl = yearLine(k, e); if (yl) h += `<div>${yl}</div>`;
+  if (e.date && k !== "road") h += `<div><small>${esc(e.date)}</small></div>`;
+  if (k === "vote" && e.cell) h += `<div><small>Table: ${esc(e.cell)}${e.row && e.row !== u.n ? ", row '" + esc(e.row) + "'" : ""}</small></div>`;
+  if (k === "metric" && e.tableyear) h += `<div><small>Table: ${esc(e.tableyear)}; status: ${esc((e.status_text || "").slice(0, 160))}${(e.status_text || "").length > 160 ? "..." : ""}</small></div>`;
+  if (e.note) h += `<div style="margin-top:4px">${esc(e.note)}</div>`;
+  if (k === "road" && e.tnote) h += `<div><small>Table note: ${esc(e.tnote.slice(0, 200))}${e.tnote.length > 200 ? "..." : ""}</small></div>`;
+  if (e.standin) h += `<div><small>Stand in: ${esc(e.standin)}</small></div>`;
+  if (k === "cal" && e.rows && e.rows.length > 1) h += `<div style="margin-top:4px"><small>In the list: ${e.rows.slice(0, 6).map(r => `${esc(r[0])} ${esc(r[1])}${typeof r[3] === "number" && r[3] < 0 ? " (back to Julian)" : ""}`).join("; ")}${e.rows.length > 6 ? `; and ${e.rows.length - 6} more` : ""}</small></div>`;
+  if (e.src) h += `<div><small>Source: ${srcTxt(e.src)}</small></div>`;
+  h += `<div style="margin-top:6px;border-top:1px solid var(--rule);padding-top:5px"><small>${others(i)}</small></div>`;
+  return h;
+}
+function subPop(code, ll) {
+  const s = SUB[code], e = s[S.tab]; if (!e) return;
+  let h = `<b class="t">${esc(s.n)}</b><div class="now">${S.y}: ${esc(stateWords(S.tab, Object.assign({ status: "dated" }, e), S.y))}</div>`;
+  if (e.year) h += `<div>${S.tab === "vote" ? "Vote at this level" : S.tab === "road" ? "Switch" : "Switched"}: <b>${e.year}</b>${e.days ? `, ${e.days} days dropped` : ""}</div>`;
+  if (e.date) h += `<div><small>${esc(e.date)}</small></div>`; if (e.note) h += `<div>${esc(e.note)}</div>`;
+  if (S.tab === "vote") h += `<div><small>A state, provincial or cantonal vote, not the national one.</small></div>`;
+  h += `<div><small>Source: ${srcTxt(e.src)}</small></div>`; openPop(ll, h);
+}
+function pick(i, move, ll) {
+  if (!U[i]) return; if (S.sel && map && ready) map.setFeatureState({ source: "world", id: S.sel }, { sel: false });
+  S.sel = i; side();
+  if (!map || !ready) return;
+  map.setFeatureState({ source: "world", id: i }, { sel: true });
+  const at = ll || [U[i].lx, U[i].ly];
+  if (move) map.flyTo({ center: [U[i].lx, U[i].ly], zoom: Math.max(map.getZoom(), U[i].pop > 5e7 ? 2.2 : 3.2), duration: 800 });
+  openPop(at, popHTML(i), i);
+  setTimeout(() => document.querySelectorAll(".maplibregl-popup .go[data-t]").forEach(g => g.onclick = () => setTab(g.dataset.t)), 0);
+}
+
+/* ---------- legend and side panel ---------- */
+function legend() {
+  const k = S.tab, P = PAL(); let h = "";
+  if (k === "road") h = `<span><i style="background:${P.L}"></i>Left</span><span><i style="background:${P.R}"></i>Right</span><span><i style="background:${P.M}"></i>Mixed, regions differ</span><span><i style="background:${P.R};opacity:.38"></i>Faded: before a date the table does not describe</span><span><i style="background:${P.undated}"></i>Not in the table</span>`;
+  else {
+    const r = RAMP[k]; h = r.c.map((c, j) => `<span><i style="background:${c}"></i>${r.lab[j]}</span>`).join("");
+    h += `<span><i style="background:${mix(r.c[1], .55)}"></i>${k === "vote" ? "With restrictions the table names" : "Part of the country"}</span><span><i style="background:${P.notyet}"></i>Not yet</span>`;
+    if (k === "cal") h += `<span><i style="background:#C9A227"></i>Swedish calendar, 1700 to 1712</span><span><i style="background:#5B8C99"></i>French Republican calendar, 1793 to 1805</span><span><i style="background:${P.undated}"></i>Gregorian today, no date in the sources</span><span><i style="background:${P.never}"></i>Not adopted</span>` + (LY.colonial ? `<span><i class="dash"></i>Year from the colonial power</span>` : "");
+    if (k === "metric") h += `<span><i style="background:${P.undated}"></i>Not in the table</span>`;
+    if (k === "vote") h += `<span><i style="background:${P.never}"></i>No elections</span>`;
+  }
+  if (LY.pts && (SITE.points[k] || []).length) h += `<span><i class="dot" style="background:var(--fg)"></i>Places named in the sources</span>`;
+  document.getElementById("legend").innerHTML = h;
+}
+function counts(k, y) {
+  const inS = { cal: ["G"], road: ["R"], metric: ["M"], vote: S.vm === "full" ? ["V", "E"] : ["P", "V", "E"] }[k];
+  let n = 0, p = 0, tot = 0; const ids = [];
+  for (const i of CTRY) { tot += U[i].pop; let s = stAt(U[i][k], y); if (k === "vote" && S.vm === "full" && s === "P") s = "N"; if (inS.includes(s)) { n++; p += U[i].pop; ids.push(i); } }
+  return { n, pop: 100 * p / tot, ids };
+}
+function changed(k, y0, y1) {
+  return CTRY.filter(i => { const e = U[i][k]; return e && (e.tl || []).some(([yy]) => yy > y0 && yy <= y1); }).sort((a, b) => U[a].n.localeCompare(U[b].n));
+}
+function side() {
+  const k = S.tab, y = S.y, c = counts(k, y), t = TABS.find(x => x.k === k), sd = document.getElementById("side");
+  const word = { cal: "on the Gregorian calendar", road: "driving on the right", metric: "with metrication under way", vote: S.vm === "full" ? "where women vote on equal terms" : "where women can vote nationally" }[k];
+  let h = "";
+  if (S.sel) { const u = U[S.sel]; h += `<button class="back" id="bk">Back to the world</button><h4>${esc(t.name)}</h4><div class="big">${esc(u.n)}</div><div class="sub">${y}: ${esc(stateWords(k, u[k], y))}</div>`;
+    h += `<table>` + TABS.map(tt => `<tr><td><span class="chip" style="background:var(${tt.col})"></span>${tt.name}</td><td>${yearLine(tt.k, u[tt.k]) || esc(stateWords(tt.k, u[tt.k], YN))}</td></tr>`).join("") + `</table>`;
+    const e = u[k]; if (e && e.note) h += `<p class="sub" style="color:var(--fg)">${esc(e.note)}</p>`; }
+  h += `<h4>The world in ${y}</h4><div class="big" style="color:var(${t.col})">${c.n} of ${CTRY.length}</div><div class="sub">of today's countries ${word}, home to ${c.pop.toFixed(0)}% of today's people.</div>`;
+  const ch = changed(k, y - 10, y);
+  h += `<h4>Changed in the ten years to ${y}</h4>` + (ch.length ? `<p>${ch.map(i => `<span class="go" data-i="${i}">${esc(U[i].n)}</span> <small>${(U[i][k].tl.filter(([yy]) => yy > y - 10 && yy <= y).map(z => z[0]).join(", "))}</small>`).join(", ")}</p>` : `<p class="sub">None in the record.</p>`);
+  if (k === "cal") h += `<p class="sub">${R.cal.n_never} countries have not adopted it; ${R.cal.n_undated} use it today but the sources give no date.</p>`;
+  if (k === "metric") h += `<p class="sub">${R.metric.n_undated} countries are not in the table; NIST says all but Liberia, Myanmar and the United States have mandatory metric laws.</p>`;
+  if (k === "road") h += `<p class="sub">Where the table gives no date of switch (${R.road.n_nodate} countries), today's side is shown throughout.</p>`;
+  sd.innerHTML = h;
+  const bk = document.getElementById("bk"); if (bk) bk.onclick = () => { if (map && ready && S.sel) map.setFeatureState({ source: "world", id: S.sel }, { sel: false }); S.sel = null; if (popup) popup.remove(); side(); };
+  sd.querySelectorAll(".go[data-i]").forEach(g => g.onclick = () => pick(g.dataset.i, true));
+}
+
+/* ---------- controls ---------- */
+const tabsEl = document.getElementById("tabs");
+tabsEl.innerHTML = TABS.map(t => `<button class="tab" role="tab" data-k="${t.k}" style="--tc:var(${t.col})" aria-selected="false">${t.name}<small>${t.sub}</small></button>`).join("");
+tabsEl.querySelectorAll(".tab").forEach(b => b.onclick = () => setTab(b.dataset.k));
+function setTab(k) {
+  S.tab = k; const t = TABS.find(x => x.k === k);
+  tabsEl.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.k === k));
+  document.getElementById("mapbox").style.setProperty("--tc", `var(${t.col})`);
+  document.getElementById("measureRow").hidden = k !== "vote";
+  if (ready) { map.getSource("pts").setData(ptsGeo()); applyLayers(); }
+  paint(); legend(); side(); placeNames();
+}
+const yr = document.getElementById("yr");
+function setYear(y) { S.y = Math.max(Y0, Math.min(YN, y)); yr.value = S.y; document.getElementById("yv").textContent = S.y; paint(); side(); }
+yr.addEventListener("input", () => { stop(); setYear(+yr.value); });
+function stop() { if (S.play) { clearInterval(S.play); S.play = null; document.getElementById("play").innerHTML = "&#9654;"; } }
+document.getElementById("play").onclick = () => {
+  if (S.play) { stop(); return; }
+  const first = { cal: 1580, road: 1700, metric: 1790, vote: 1890 }[S.tab];
+  if (S.y >= YN) setYear(first);
+  document.getElementById("play").innerHTML = "&#10074;&#10074;";
+  S.play = setInterval(() => { if (S.y >= YN) { stop(); return; } setYear(S.y + (S.y < 1700 ? 3 : S.y < 1850 ? 2 : 1)); }, 90);
+};
+document.querySelectorAll("#measureRow .btn").forEach(b => b.onclick = () => { S.vm = b.dataset.v; document.querySelectorAll("#measureRow .btn").forEach(x => x.setAttribute("aria-pressed", x === b)); paint(); side(); });
+(function search() {
+  const q = document.getElementById("q"), sug = document.getElementById("sug"); let items = [], hi = -1;
+  const all = ISOS.map(i => ({ i, n: U[i].n, k: U[i].n.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") })).sort((a, b) => a.n.localeCompare(b.n));
+  function build(v) { v = v.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim(); if (!v) { sug.style.display = "none"; return; }
+    items = all.filter(a => a.k.includes(v)).sort((a, b) => (b.k.startsWith(v) - a.k.startsWith(v))).slice(0, 10); hi = items.length ? 0 : -1;
+    sug.innerHTML = items.map((a, j) => `<li role="option" data-j="${j}" aria-selected="${j === hi}">${esc(a.n)} <span>${esc(yearLine(S.tab, U[a.i][S.tab]).replace(/<[^>]+>/g, ""))}</span></li>`).join(""); sug.style.display = items.length ? "block" : "none";
+    sug.querySelectorAll("li").forEach(li => li.onmousedown = ev => { ev.preventDefault(); go(+li.dataset.j); }); }
+  function go(j) { const a = items[j]; if (!a) return; q.value = a.n; sug.style.display = "none"; pick(a.i, true); }
+  q.addEventListener("input", () => build(q.value));
+  q.addEventListener("keydown", ev => { if (ev.key === "ArrowDown") { hi = Math.min(items.length - 1, hi + 1); } else if (ev.key === "ArrowUp") { hi = Math.max(0, hi - 1); } else if (ev.key === "Enter") { go(Math.max(0, hi)); return; } else return;
+    ev.preventDefault(); sug.querySelectorAll("li").forEach((li, j) => li.setAttribute("aria-selected", j === hi)); });
+  q.addEventListener("blur", () => setTimeout(() => sug.style.display = "none", 150));
+})();
+
+/* ---------- charts ---------- */
+const CURV = [["cal", "Gregorian calendar", "--cal"], ["road", "Driving on the right", "--road"], ["metric", "Metrication started", "--metric"], ["vote", "Women can vote", "--vote"]];
+let curveMode = "n";
+function curveChart() {
+  resp(document.getElementById("curveChart"), (w, sm) => {
+    const h = sm ? 300 : 380, m = { l: 40, r: sm ? 12 : 150, t: 14, b: 28 }, box = document.getElementById("curveChart");
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Lines showing the share of today's countries that had made each of the four switches, 1580 to 2026" }, box);
+    const X = y => m.l + (w - m.l - m.r) * (y - Y0) / (YN - Y0), Yv = v => h - m.b - (h - m.t - m.b) * v / 100;
+    for (let v = 0; v <= 100; v += 25) { el("line", { x1: m.l, x2: w - m.r, y1: Yv(v), y2: Yv(v), stroke: css("--rule") }, svg); lbl(svg, m.l - 6, Yv(v) + 4, v + "%", "lab s m", "end"); }
+    for (let y = 1600; y <= 2000; y += sm ? 100 : 50) lbl(svg, X(y), h - 9, y, "lab s m", "middle");
+    const N = CTRY.length, yrs = R.curves.cal.n.map((_, j) => Y0 + j);
+    const val = (k, j) => curveMode === "n" ? 100 * R.curves[k].n[j] / N : R.curves[k].pop[j];
+    const ends = [];
+    CURV.forEach(([k, nm, c]) => { el("polyline", { points: yrs.map((y, j) => `${X(y).toFixed(1)},${Yv(val(k, j)).toFixed(1)}`).join(" "), fill: "none", stroke: css(c), "stroke-width": 2.6, "stroke-linejoin": "round" }, svg);
+      ends.push([k, nm, c, Yv(val(k, yrs.length - 1))]); });
+    if (!sm) { ends.sort((a, b) => a[3] - b[3]); let last = -99; ends.forEach(e => { let y = Math.max(e[3], last + 15); last = y; lbl(svg, w - m.r + 6, y + 4, e[1], "lab s b").setAttribute("style", `fill:${css(e[2])}`); }); }
+    const g = el("line", { x1: 0, x2: 0, y1: m.t, y2: h - m.b, stroke: css("--fg"), opacity: 0 }, svg);
+    const hit = el("rect", { x: m.l, y: m.t, width: w - m.l - m.r, height: h - m.t - m.b, fill: "transparent" }, svg);
+    const mv = ev => { const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * w / r.width, y = Math.round(Y0 + (x - m.l) / (w - m.l - m.r) * (YN - Y0)), j = y - Y0; if (j < 0 || j >= yrs.length) return;
+      g.setAttribute("x1", X(y)); g.setAttribute("x2", X(y)); g.setAttribute("opacity", .4);
+      showTip(`<b>${y}</b><br>` + CURV.map(([k, nm, c]) => `<span style="color:${css(c)}">■</span> ${nm}: ${curveMode === "n" ? R.curves[k].n[j] + " countries" : R.curves[k].pop[j].toFixed(0) + "% of people"}`).join("<br>"), ev.clientX, ev.clientY); };
+    hit.addEventListener("mousemove", mv); hit.addEventListener("click", ev => { ev.stopPropagation(); mv(ev); }); hit.addEventListener("mouseleave", () => { hideTip(); g.setAttribute("opacity", 0); });
+  });
+  document.getElementById("curveLegend").innerHTML = CURV.map(([k, nm, c]) => `<span><i style="background:var(${c})"></i>${nm}</span>`).join("");
+}
+document.querySelectorAll("#curveMode .btn").forEach(b => b.onclick = () => { curveMode = b.dataset.m; document.querySelectorAll("#curveMode .btn").forEach(x => x.setAttribute("aria-pressed", x === b)); redraws.forEach(f => f()); });
+function daysChart() {
+  const groups = [["10", "10 days"], ["11", "11 days"], ["12", "12 days"], ["13", "13 days"]].map(([d, l]) => [l, R.cal.days_lists[d]]);
+  groups.push(["no days", R.cal.nonjulian.map(x => x[0])]);
+  resp(document.getElementById("daysChart"), (w, sm) => {
+    const box = document.getElementById("daysChart"), rowH = sm ? 26 : 30, lw = sm ? 70 : 84, mx = Math.max(...groups.map(g => g[1].length));
+    const h = groups.length * rowH * 2 + 10, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Bar chart of countries by days dropped at the calendar switch" }, box);
+    groups.forEach(([l, list], j) => { const y = j * rowH * 2 + 6, bw = (w - lw - 40) * list.length / mx;
+      lbl(svg, 0, y + 16, l, "lab b"); el("rect", { x: lw, y: y + 3, width: Math.max(2, bw), height: rowH - 8, fill: j === 4 ? css("--muted") : css("--cal"), opacity: j === 4 ? .5 : .55 + .1 * j }, svg);
+      lbl(svg, lw + bw + 6, y + 16, list.length, "lab b");
+      const t = lbl(svg, lw, y + rowH + 10, "", "lab xs m"); let s = list.join(", "); const maxc = Math.floor((w - lw) / 6.1); if (s.length > maxc) s = s.slice(0, maxc - 3).replace(/,[^,]*$/, "") + ", ..."; t.textContent = s;
+      const r = el("rect", { x: 0, y: y, width: w, height: rowH * 2 - 4, fill: "transparent" }, svg);
+      r.addEventListener("mousemove", ev => showTip(`<b>${l}</b>: ${list.length} countries<br>${esc(list.join(", "))}`, ev.clientX, ev.clientY)); r.addEventListener("mouseleave", hideTip); r.addEventListener("click", ev => { ev.stopPropagation(); showTip(`<b>${l}</b>: ${list.length} countries<br>${esc(list.join(", "))}`, ev.clientX, ev.clientY); }); });
+  });
+}
+function dotStrip(boxId, rows, opt) {   // rows: [name, year, colourVar, hollow, iso]
+  resp(document.getElementById(boxId), (w, sm) => {
+    const box = document.getElementById(boxId), m = { l: 14, r: 14, t: 10, b: 26 }, r = sm ? 4.2 : 5.2, x0 = opt.x0, x1 = opt.x1;
+    const X = y => m.l + (w - m.l - m.r) * (y - x0) / (x1 - x0); const stacks = {}; const pts = rows.map(d => { const key = Math.round(X(d[1]) / (2 * r + 1)); stacks[key] = (stacks[key] || 0) + 1; return [d, X(d[1]), stacks[key] - 1]; });
+    const mxs = Math.max(...Object.values(stacks)); const h = m.t + m.b + mxs * (2 * r + 1) + 6;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": opt.aria }, box);
+    for (let y = Math.ceil(x0 / opt.step) * opt.step; y <= x1; y += opt.step * (sm ? 2 : 1)) { el("line", { x1: X(y), x2: X(y), y1: m.t, y2: h - m.b, stroke: css("--rule") }, svg); lbl(svg, X(y), h - 8, y, "lab s m", "middle"); }
+    pts.forEach(([d, x, k]) => { const cy = h - m.b - r - 2 - k * (2 * r + 1); const c = el("circle", { cx: x, cy, r, fill: d[3] ? "none" : css(d[2]), stroke: css(d[2]), "stroke-width": d[3] ? 1.6 : (d[5] ? 2.2 : 0) }, svg);
+      if (d[5]) el("circle", { cx: x, cy, r: r + 2.2, fill: "none", stroke: css("--fg"), "stroke-width": 1.2 }, svg);
+      const t = () => opt.tip(d); c.addEventListener("mousemove", ev => showTip(t(), ev.clientX, ev.clientY)); c.addEventListener("mouseleave", hideTip);
+      c.addEventListener("click", ev => { ev.stopPropagation(); showTip(t(), ev.clientX, ev.clientY); if (d[4]) { setTab(opt.tab); setYear(YN); pick(d[4], false); } }); c.style.cursor = "pointer"; });
+  });
+}
+const ISO_BY_NAME = {}; ISOS.forEach(i => ISO_BY_NAME[U[i].n] = i);
+function roadChart() {
+  const rows = R.road.switches.map(([n, y, s]) => { const i = ISO_BY_NAME[n], e = U[i].road; return [n, y, s === "L" ? "--left" : "--road", !!e.q, i]; });
+  dotStrip("roadChart", rows, { x0: 1720, x1: 2015, step: 20, tab: "road", aria: "Dot chart of the year each country changed driving side", tip: d => { const e = U[d[4]].road; return `<b>${esc(d[0])}</b>, ${esc(e.date || d[1])}: to the ${d[2] === "--left" ? "left" : "right"}${d[3] ? "<br>(date only: no description of the change)" : ""}${e.note ? "<br>" + esc(e.note.slice(0, 180)) : ""}`; } });
+  document.getElementById("roadLegend").innerHTML = `<span><i class="dot" style="background:var(--road)"></i>to the right</span><span><i class="dot" style="background:var(--left)"></i>to the left</span><span><i class="dot" style="border:1.6px solid var(--road);background:none"></i>date only</span>`;
+}
+function metricChart() {
+  const rows = CTRY.filter(i => U[i].metric.year).map(i => [U[i].n, U[i].metric.year, "--metric", false, i, !!U[i].metric.mixed]).sort((a, b) => a[1] - b[1]);
+  dotStrip("metricChart", rows, { x0: 1790, x1: 2020, step: 20, tab: "metric", aria: "Dot chart of the year each country's metrication started", tip: d => { const e = U[d[4]].metric; return `<b>${esc(d[0])}</b>: ${d[1]}${e.first && e.first < e.year ? " (part from " + e.first + ")" : ""}${d[5] ? "<br>Non-metric units still official" : ""}${e.note ? "<br>" + esc(e.note.slice(0, 180)) : ""}`; } });
+  document.getElementById("metricLegend").innerHTML = `<span><i class="dot" style="background:var(--metric)"></i>metrication started</span><span><i class="dot" style="background:var(--metric);box-shadow:0 0 0 2px var(--bg),0 0 0 3.2px var(--fg)"></i>non-metric units still official</span>`;
+}
+function voteChart() {
+  const D = R.vote.two;
+  resp(document.getElementById("voteChart"), (w, sm) => {
+    const box = document.getElementById("voteChart"), m = { l: sm ? 118 : 160, r: 16, t: 8, b: 26 }, rh = sm ? 19 : 21, h = m.t + m.b + D.length * rh;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Chart of first and equal voting years for women" }, box);
+    const x0 = 1895, x1 = 2000, X = y => m.l + (w - m.l - m.r) * (y - x0) / (x1 - x0);
+    for (let y = 1900; y <= 2000; y += sm ? 25 : 10) { el("line", { x1: X(y), x2: X(y), y1: m.t, y2: h - m.b, stroke: css("--rule") }, svg); lbl(svg, X(y), h - 8, y, "lab s m", "middle"); }
+    D.forEach(([n, a, b], j) => { const y = m.t + j * rh + rh / 2; lbl(svg, m.l - 8, y + 4, n, "lab s", "end");
+      el("line", { x1: X(a), x2: X(b), y1: y, y2: y, stroke: css("--vote"), "stroke-width": 2, opacity: .5 }, svg);
+      el("circle", { cx: X(a), cy: y, r: 4.5, fill: css("--card"), stroke: css("--vote"), "stroke-width": 1.8 }, svg);
+      el("circle", { cx: X(b), cy: y, r: 5, fill: css("--vote") }, svg);
+      const r = el("rect", { x: 0, y: y - rh / 2, width: w, height: rh, fill: "transparent" }, svg); const i = ISO_BY_NAME[n];
+      const t = () => `<b>${esc(n)}</b>: ${a} first, ${b} equal or full<br>${esc((U[i].vote.note || "").slice(0, 200))}`;
+      r.addEventListener("mousemove", ev => showTip(t(), ev.clientX, ev.clientY)); r.addEventListener("mouseleave", hideTip); r.addEventListener("click", ev => { ev.stopPropagation(); showTip(t(), ev.clientX, ev.clientY); }); });
+  });
+  document.getElementById("voteLegend").innerHTML = `<span><i class="dot" style="background:var(--card);border:1.8px solid var(--vote)"></i>first vote, with restrictions</span><span><i class="dot" style="background:var(--vote)"></i>full or equal terms</span>`;
+}
+function holdTable() {
+  const cols = [["cal", "Calendar", R.cal.last.concat([]).slice(0, 10)], ["road", "Changed side", R.road.switches.slice(-10).reverse().map(x => [x[0], x[1]])],
+    ["metric", "Metrication", CTRY.filter(i => U[i].metric.year).sort((a, b) => U[b].metric.year - U[a].metric.year).slice(0, 10).map(i => [U[i].n, U[i].metric.year])], ["vote", "Women vote", R.vote.last.slice(0, 10)]];
+  const box = document.getElementById("holdTable");
+  box.innerHTML = `<div class="tablebox" style="max-height:none"><table class="tbl"><thead><tr>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>` +
+    Array.from({ length: 10 }, (_, j) => `<tr>${cols.map(c => { const x = c[2][j]; return x ? `<td><span class="go" data-k="${c[0]}" data-i="${ISO_BY_NAME[x[0]] || ""}">${esc(x[0])}</span> <small>${x[1]}</small></td>` : "<td></td>"; }).join("")}</tr>`).join("") + `</tbody></table></div>`;
+  box.querySelectorAll(".go").forEach(g => g.onclick = () => { setTab(g.dataset.k); setYear(YN); document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setTimeout(() => pick(g.dataset.i, true), 400); });
+}
+let tsort = ["n", 1];
+function ctyTable() {
+  const t = document.getElementById("ctyTable"), q = (document.getElementById("tq").value || "").toLowerCase();
+  const rows = CTRY.map(i => { const u = U[i]; return { i, n: u.n, cal: u.cal.year || (u.cal.status === "never" ? 9998 : 9999), road: u.road.now, ry: u.road.year || 0, met: u.metric.year || 9999, vote: u.vote.first || 9999 }; })
+    .filter(r => !q || r.n.toLowerCase().includes(q)).sort((a, b) => (a[tsort[0]] > b[tsort[0]] ? 1 : a[tsort[0]] < b[tsort[0]] ? -1 : 0) * tsort[1] || a.n.localeCompare(b.n));
+  const cy = u => u.cal.status === "never" ? "not adopted" : u.cal.year ? (u.cal.first && u.cal.first < u.cal.year ? `<small>(${u.cal.first})</small> ` : "") + u.cal.year + (u.cal.status === "colonial" ? " <small>colony</small>" : "") : "<small>no date</small>";
+  t.innerHTML = `<thead><tr><th data-s="n">Country</th><th data-s="cal" class="r">Calendar</th><th data-s="road">Drives</th><th data-s="met" class="r">Metric</th><th data-s="vote" class="r">Women vote</th></tr></thead><tbody>` +
+    rows.map(r => { const u = U[r.i]; return `<tr data-i="${r.i}"><td>${esc(u.n)}</td><td class="r">${cy(u)}</td><td>${u.road.now === "L" ? "left" : "right"}${u.road.year ? ` <small>${u.road.year}</small>` : ""}</td><td class="r">${u.metric.year || "<small>no year</small>"}${u.metric.mixed ? " <small>mixed</small>" : ""}</td><td class="r">${u.vote.first ? u.vote.first + (u.vote.equal ? `<small>/${u.vote.equal}</small>` : "") : "<small>no elections</small>"}</td></tr>`; }).join("") + `</tbody>`;
+  t.querySelectorAll("th").forEach(th => th.onclick = () => { const s = th.dataset.s; tsort = [s, tsort[0] === s ? -tsort[1] : 1]; ctyTable(); });
+  t.querySelectorAll("tr[data-i]").forEach(r => r.onclick = () => { document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setTimeout(() => pick(r.dataset.i, true), 400); });
+}
+document.getElementById("tq").addEventListener("input", ctyTable);
+function charts() { curveChart(); daysChart(); roadChart(); metricChart(); voteChart(); holdTable(); ctyTable(); }
+
+/* ---------- start ---------- */
+document.getElementById("theme").onclick = () => { const r = document.documentElement; r.dataset.theme = isDark() ? "light" : "dark";
+  if (ready) { const P = PAL(); map.setPaintProperty("bg", "background-color", P.sea); map.setPaintProperty("borders", "line-color", P.border); map.setPaintProperty("subline", "line-color", P.border); map.setPaintProperty("colonial", "line-color", isDark() ? "#ECEEF1" : "#1D2128"); }
+  paint(); legend(); redraws.forEach(f => f()); };
+setTab("cal"); setYear(YN); charts(); startMap();
+</script>
+/*FULLSCREEN*/
+</body>
+</html>
