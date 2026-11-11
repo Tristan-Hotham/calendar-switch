@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this data or code, please cite it as below."
+title: "When Did Your Country Lose 11 Days? Four Great Switches, from the Gregorian Calendar to Votes for Women"
+type: dataset
+authors:
+  - family-names: Hotham
+    given-names: Tristan
+    orcid: "https://orcid.org/0000-0003-4931-9349"
+    affiliation: "Independent researcher"
+doi: "10.5281/zenodo.23873009"
+url: "https://maps.tristanhotham.com/calendar-switch/"
+repository-code: "https://github.com/Tristan-Hotham/calendar-switch"
+license: CC-BY-4.0
+keywords:
+  - "Gregorian calendar"
+  - "calendar reform"
+  - "driving side"
+  - "left-hand traffic"
+  - "metrication"
+  - "women's suffrage"
+  - "diffusion"
+  - "standardisation"
+  - "historical geography"
+  - "Wikipedia"
+  - "open data"
+  - "maps"
